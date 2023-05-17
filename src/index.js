@@ -6,6 +6,48 @@ import Notiflix from 'notiflix';
 const input = document.querySelector('#search-box');
 const DEBOUNCE_DELAY = 300;
 
+const dataHandler = data => {
+  const list = document.querySelector('.country-list');
+  const infoDiv = document.querySelector('.country-info');
+  let listCounter = '';
+  let infoCounter = '';
+  if (data.length > 10) {
+    manyCountries();
+  } else if (data.length >= 2 && data.length <= 10) {
+    fewCountries(data, listCounter, list);
+  } else {
+    oneCountry(data, listCounter, infoCounter, list, infoDiv);
+  }
+};
+const manyCountries = () => {
+  Notiflix.Notify.info(
+    'Too many matches found. Please enter a more specific name.'
+  );
+};
+const fewCountries = (data, listCounter, list) => {
+  data.map(({ flags: { svg }, name: { official } }) => {
+    listCounter += `<li><img src="${svg}"><p>${official}</p></li>`;
+  });
+  list.innerHTML = listCounter;
+};
+const oneCountry = (data, listCounter, infoCounter, list, infoDiv) => {
+  data.map(
+    ({
+      flags: { svg },
+      name: { official },
+      capital,
+      population,
+      languages,
+    }) => {
+      let langs = Object.values(languages).join(', ');
+      listCounter += `<li><img src="${svg}"><p>${official}</p></li>`;
+      infoCounter += `<p>Capital: ${capital}</p><p>Population: ${population}</p><p>Languages: ${langs}</p>`;
+    }
+  );
+  list.innerHTML = listCounter;
+  infoDiv.innerHTML = infoCounter;
+};
+
 input.addEventListener(
   'input',
   debounce(() => {
@@ -13,43 +55,8 @@ input.addEventListener(
     document.querySelector('.country-info').innerHTML = '';
     if (input.value.trim() !== '') {
       fetchCountries(input.value.trim())
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(response.status);
-          }
-          return response.json();
-        })
         .then(data => {
-          const list = document.querySelector('.country-list');
-          const infoDiv = document.querySelector('.country-info');
-          let listCounter = '';
-          let infoCounter = '';
-          if (data.length > 10) {
-            Notiflix.Notify.info(
-              'Too many matches found. Please enter a more specific name.'
-            );
-          } else if (data.length >= 2 && data.length <= 10) {
-            data.map(({ flags: { svg }, name: { official } }) => {
-              listCounter += `<li><img src="${svg}"><p>${official}</p></li>`;
-            });
-            list.innerHTML = listCounter;
-          } else {
-            data.map(
-              ({
-                flags: { svg },
-                name: { official },
-                capital,
-                population,
-                languages,
-              }) => {
-                let langs = Object.values(languages).join(', ');
-                listCounter += `<li><img src="${svg}"><p>${official}</p></li>`;
-                infoCounter += `<p>Capital: ${capital}</p><p>Population: ${population}</p><p>Languages: ${langs}</p>`;
-              }
-            );
-            list.innerHTML = listCounter;
-            infoDiv.innerHTML = infoCounter;
-          }
+          dataHandler(data);
         })
         .catch(error => {
           if (Number(error.message) === 404) {
