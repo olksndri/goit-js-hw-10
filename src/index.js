@@ -25,13 +25,13 @@ const manyCountries = () => {
   );
 };
 const fewCountries = (data, listCounter, list) => {
-  data.map(({ flags: { svg }, name: { official } }) => {
+  data.forEach(({ flags: { svg }, name: { official } }) => {
     listCounter += `<li><img src="${svg}"><p>${official}</p></li>`;
   });
   list.innerHTML = listCounter;
 };
 const oneCountry = (data, listCounter, infoCounter, list, infoDiv) => {
-  data.map(
+  data.forEach(
     ({
       flags: { svg },
       name: { official },
